@@ -16,10 +16,21 @@
 	"content_scripts": [
 		{
 			"matches": ["http://*.travian.co.il/*"],
-			"js": ["util.js", "dorf1.js"],
+			"js": ["data.js", "util.js", "sidebar.js"],
 			"css": ["mystyle.css"],
 			"run_at": "document_end"
+		},
+		{
+			"matches": ["http://*.travian.co.il/dorf1.php*"],
+			"js": ["dorf1.js"],
+			"run_at": "document_end"
+		},
+		{
+			"matches": ["http://*.travian.co.il/build.php*"],
+			"js": ["build.js"],
+			"run_at": "document_end"
 		}
+
 	]
 		
 }

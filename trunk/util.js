@@ -84,17 +84,48 @@ Resources.getGranaryCapacity = function () {
 	return parseInt(XPath.getString('//*[@id="l1"]/text()').split("/")[1]);
 }
 
+Resources.calcProduction = function(seconds) {
+	var wood = Resources.getWoodProduction();
+	var clay = Resources.getClayProduction();
+	var iron = Resources.getIronProduction();
+	var crop = Resources.getCropProduction();
+	
+	hours = seconds/3600;
+	return { 
+		'wood': wood*hours,
+		'clay': clay*hours,
+		'iron': iron*hours,
+		'crop': crop*hours
+	}
+}
+
 
 var Util = {};
 Util.seconds2TimeString = function (secs) {
-	s = secs % 60;
-	m = parseInt(secs / 60) % 60;
-	h = parseInt(secs / 3600);
+	var s = secs % 60;
+	var m = parseInt(secs / 60) % 60;
+	var h = parseInt(secs / 3600);
 	if (s < 10)
 		s = "0"+s;
 	if (m < 10)
 		m = "0"+m;
 	return h+":"+m+":"+s;
 }
+Util.timeString2Seconds = function (ts) {
+	var h = parseInt(ts.split(':')[0]);
+	var m = parseInt(ts.split(':')[1]);
+	var s = parseInt(ts.split(':')[2]);
+	return h*3600 + m*60 + s;
+}
+
+
+
+
+
+
+
+
+
+
 
 
