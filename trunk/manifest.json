@@ -16,7 +16,7 @@
 	"content_scripts": [
 		{
 			"matches": ["http://*.travian.co.il/*"],
-			"js": ["data.js", "util.js", "sidebar.js"],
+			"js": ["data.js", "util.js", "sidebar.js", "links.js"],
 			"css": ["mystyle.css"],
 			"run_at": "document_end"
 		},
