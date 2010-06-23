@@ -8,7 +8,10 @@ XPath.getString = function (query, root) {
 
 XPath.getInt = function (query, root) {
 	root = root || document;
-	return parseInt(document.evaluate(query ,root, null, XPathResult.STRING_TYPE, null).stringValue.match(/[\-]?[0-9]+/));
+	var str = XPath.getString(query, root);
+	if (str == '')
+		return 0;
+	return parseInt(str.match(/[\-]?[0-9]+/).toString());
 }
 
 XPath.getNodes = function (query, root) {

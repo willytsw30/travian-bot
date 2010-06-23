@@ -14,30 +14,29 @@ Production.timers = new Array();
 
 Production.createTimer = function (productionPerHour, capacity, instock) {
 	var span = document.createElement('span');
-	//alert(productionPerHour);
-	//alert(capacity);
-	//alert(instock);
 	span.appendChild(document.createTextNode('---'));
-	if (productionPerHour != 0) {
-		Production.timers.push(span);
+	if (productionPerHour == 0)
+		return span;
 		
-		var remaining = null;
-		if (productionPerHour > 0) {
-			remaining = capacity - instock;
-			span.className = 'good';
-		} else {
-			remaining = instock;
-			productionPerHour *= -1;
-			span.className = 'bad';
-		}
-		span.totalSeconds = parseInt((remaining / productionPerHour)*3600);
 	
-		span.calcRemainingTime = function() {
-			this.totalSeconds -= 1;
-			var t = Util.seconds2TimeString(this.totalSeconds);
-			DOM.removeAllChildren(this);
-			this.appendChild(document.createTextNode(t));
-		}
+	Production.timers.push(span);
+	
+	var remaining = null;
+	if (productionPerHour > 0) {
+		remaining = capacity - instock;
+		span.className = 'good';
+	} else { // negative production
+		remaining = instock;
+		productionPerHour *= -1;
+		span.className = 'bad';
+	}
+	span.totalSeconds = parseInt((remaining / productionPerHour)*3600);
+
+	span.calcRemainingTime = function() {
+		(this.totalSeconds == 0) ? this.className = 'bad' : this.totalSeconds -= 1;
+		var t = Util.seconds2TimeString(this.totalSeconds);
+		DOM.removeAllChildren(this);
+		this.appendChild(document.createTextNode(t));
 	}
 	
 	
@@ -65,9 +64,6 @@ Production.addTimers = function() {
 	DOM.removeAllChildren(cropNode);
 	var cropSpan = Production.createTimer(Resources.getCropProduction(), Resources.getGranaryCapacity(), Resources.getCrop());
 	cropNode.appendChild(cropSpan);
-	
-	Production.calcRemainingTime();
-
 	
 	Production.calcRemainingTime();
 }
