@@ -84,6 +84,38 @@ Resources.getGranaryCapacity = function () {
 	return parseInt(XPath.getString('//*[@id="l1"]/text()').split("/")[1]);
 }
 
+Resources.createWoodIcon = function () {
+	var img = document.createElement('img');
+	img.src = 'img/x.gif';
+	img.className = 'r1';
+	img.alt = 'Send Resources';
+	return img;
+}
+
+Resources.createClayIcon = function () {
+	var img = document.createElement('img');
+	img.src = 'img/x.gif';
+	img.className = 'r2';
+	img.alt = 'Send Resources';
+	return img;
+}
+
+Resources.createIronIcon = function () {
+	var img = document.createElement('img');
+	img.src = 'img/x.gif';
+	img.className = 'r3';
+	img.alt = 'Send Resources';
+	return img;
+}
+
+Resources.createCropIcon = function () {
+	var img = document.createElement('img');
+	img.src = 'img/x.gif';
+	img.className = 'r4';
+	img.alt = 'Send Resources';
+	return img;
+}
+
 Resources.calcProduction = function(seconds) {
 	var wood = Resources.getWoodProduction();
 	var clay = Resources.getClayProduction();
@@ -99,6 +131,14 @@ Resources.calcProduction = function(seconds) {
 	}
 }
 
+var Units = {};
+Units.createIcon = function () {
+	var img = document.createElement('img');
+	img.src = 'img/x.gif';
+	img.className = 'unit u1';
+	img.alt = 'Send Units';
+	return img;
+}
 
 var Util = {};
 Util.seconds2TimeString = function (secs) {

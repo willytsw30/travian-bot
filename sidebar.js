@@ -6,12 +6,7 @@ SideBar.addSendResources = function (tr) {
 	tr.appendChild(td);
 
 	var a = document.createElement('a');
-	var img = document.createElement('img');
-	img.src = 'img/x.gif';
-	img.className = 'r1';
-	img.alt = 'Send Resources';
-	img.title = 'Send Resources';
-	a.appendChild(img);
+	a.appendChild(Resources.createWoodIcon());
 
 	var coords = SideBar.gerRowCoords(tr);
 	a.href = 'build.php?z='+Map.xy2id(coords.x, coords.y)+'&gid=17';
@@ -29,12 +24,7 @@ SideBar.addSendUnits = function (tr){
 	tr.appendChild(td);
 
 	var a = document.createElement('a');
-	var img = document.createElement('img');
-	img.src = 'img/x.gif';
-	img.className = 'unit u1';
-	img.alt = 'Send Units';
-	img.title = 'Send Units';
-	a.appendChild(img);
+	a.appendChild(Units.createIcon());
 	
 	var coords = SideBar.gerRowCoords(tr);
 	a.href = 'a2b.php?z='+Map.xy2id(coords.x, coords.y);
