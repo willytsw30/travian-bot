@@ -1,0 +1,54 @@
+
+<script src="util.js"/>
+<script>
+
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+	if (/\.travian\./.test(tab.url)) {
+		chrome.pageAction.show(tabId);
+	}
+});
+
+/*
+function toDOM(HTMLstring)
+{
+	var d = document.createElement('div');
+	d.innerHTML = HTMLstring;
+	var docFrag = document.createDocumentFragment();
+
+	while (d.firstChild) {
+	docFrag.appendChild(d.firstChild)
+	};
+
+	return docFrag;
+}
+*/
+
+var BuildingQueue = {}
+
+BuildingQueue.enqueue = function (villageId, slotId) {
+	alert('villageId: '+villageId+', slotId: '+slotId);
+	var xhr = new XMLHttpRequest();
+	
+	xhr.open("GET", "http://s3.travian.co.il/build.php?newdid="+villageId+"&id="+slotId, false);
+	xhr.send();
+	
+	//var frag = toDOM(xhr.responseText);
+	parser = new DOMParser();
+	filterXmlDoc = parser.parseFromString(xhr.responseText, "text/xml");
+	var n = XPath.getNode('//*[@id="contract"]//a[@class="build"]', filterXmlDoc);
+	if (n != null) {
+		var sendBuildRequest = function() {
+			var buildUrl = XPath.getString('./@href', n);
+			xhr.open("GET", "http://s3.travian.co.il/"+buildUrl, false);
+			xhr.send();
+			console.log(xhr.responseText);
+		}
+		setTimeout(sendBuildRequest, 5000);
+	}
+}
+
+
+
+Comm.register('BuildingQueue.enqueue', BuildingQueue.enqueue);
+
+</script>

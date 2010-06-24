@@ -38,43 +38,29 @@ Marketplace.addTraderResourceRow = function (traderTable, resources) {
 	
 	var td = document.createElement('td');
 	tr.appendChild(td);
-	td.colspan = '2';
+	td.colSpan = 2;
 	
-	var capacity = Resources.getWherehouseCapacity();
-	var span;
+	var appendResource = function (td, icon, resource, capacity) {
+		td.appendChild(icon);
+		var span = document.createElement('span');
+		span.appendChild(document.createTextNode(""+parseInt(resource)));
+		if (resource < 0 || capacity < resource)
+			span.className = 'bad';
+		td.appendChild(span);
+	}
 	
-	td.appendChild(Resources.createWoodIcon());
-	span = document.createElement('span');
-	span.appendChild(document.createTextNode(""+parseInt(resources.wood)));
-	if (resources.wood > capacity)
-		span.className = 'bad';
-	td.appendChild(span);
-	td.appendChild(document.createTextNode(" | "));
-		
-	td.appendChild(Resources.createClayIcon());
-	span = document.createElement('span');
-	span.appendChild(document.createTextNode(""+parseInt(resources.clay)));
-	if (resources.clay > capacity)
-		span.className = 'bad';
-	td.appendChild(span);
+	var wherehouse = Resources.getWherehouseCapacity();
+	
+	appendResource(td, Resources.createWoodIcon(), resources.wood, wherehouse);
 	td.appendChild(document.createTextNode(" | "));
 	
-	td.appendChild(Resources.createIronIcon());
-	span = document.createElement('span');
-	span.appendChild(document.createTextNode(""+parseInt(resources.iron)));
-	if (resources.iron > capacity)
-		span.className = 'bad';
-	td.appendChild(span);
+	appendResource(td, Resources.createClayIcon(), resources.clay, wherehouse);
 	td.appendChild(document.createTextNode(" | "));
 	
-	capacity = Resources.getGranaryCapacity();
+	appendResource(td, Resources.createIronIcon(), resources.iron, wherehouse);
+	td.appendChild(document.createTextNode(" | "));
 	
-	td.appendChild(Resources.createCropIcon());
-	span = document.createElement('span');
-	span.appendChild(document.createTextNode(""+parseInt(resources.crop)));
-	if (resources.crop > capacity)
-		span.className = 'bad';
-	td.appendChild(span);
+	appendResource(td, Resources.createCropIcon(), resources.crop, Resources.getGranaryCapacity());
 	
 }
 
@@ -211,13 +197,9 @@ Marketplace.addTradersCapacity = function () {
 	tr = document.createElement('tr');
 	table.appendChild(tr);
 	
-	var td = document.createElement('td');
-	td.appendChild(document.createTextNode('Total'));
-	tr.appendChild(td);
-	
-	tr.appendChild(document.createElement('td'));
 	
 	td = document.createElement('td');
+	td.colSpan = 3;
 	td.appendChild(Marketplace.createTotalResourcesNode());
 	tr.appendChild(td);
 	
@@ -239,8 +221,31 @@ Marketplace.applyAllChanges = function () {
 		Marketplace.addTradersCapacity();
 	}
 }
+var FutureUpgrade = {}
+FutureUpgrade.addLink = function () {
+	
+	var p = XPath.getNode('//*[@id="contract"]');
+	if (p == null)
+		return;
+	
+	p.appendChild(document.createElement('br'));
+	var a = document.createElement('a');
+	a.href = "#";
+	a.appendChild(document.createTextNode('Enqueue'));
+	p.appendChild(a);
+	
+	a.onclick = function () { 
+		var slotId = Util.getURLQuery(window.location).id;
+		var villageId = SideBar.getCurrentVillageId();
+		Comm.invoke(null, 'BuildingQueue.enqueue', villageId, slotId);
+	
+		return false;
+	}
+	
+}
 
 
+FutureUpgrade.addLink();
 Marketplace.applyAllChanges();
 
 

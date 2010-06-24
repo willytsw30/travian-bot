@@ -161,6 +161,49 @@ Util.timeString2Seconds = function (ts) {
 	return h*3600 + m*60 + s;
 }
 
+Util.getURLQuery = function (url) {
+	var q = url.toString().split('?');
+	if (q.length > 1)
+		q = q[1].split("#")[0];
+	var pairs = q.split('&');
+	var res = new Object();
+	for (var i=0; i < pairs.length; ++i) {
+		var key = pairs[i].split('=')[0];
+		var val = pairs[i].split('=')[1];
+		res[key] = val;
+	}
+	return res;
+}
+
+var Comm = {};
+
+Comm.invoke = function(callback, funcName) {
+	var params = new Array();
+	for (var i=2; i < arguments.length; ++i)
+		params.push(arguments[i]);
+	chrome.extension.sendRequest({'funcName': funcName, 'params': params},
+		function (res) { if (callback) callback(res.returnValue); });
+}
+
+Comm.register = function (name, func) {
+	chrome.extension.onRequest.addListener(
+	function(req, sender, sendResponse) {
+		if (name != req.funcName)
+			return;
+		paramsString = '';
+		for (var i=0; i < req.params.length; ++i)
+			paramsString += ', req.params['+i+']';
+		if (paramsString != '')
+			paramsString = paramsString.substring(2);
+		callStr = 'func('+paramsString+')';
+		returnValue = eval(callStr);
+		sendResponse({'returnValue': returnValue});
+	});
+}
+
+Comm.test = function() {
+	alert('util test');
+}
 
 
 

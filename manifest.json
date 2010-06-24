@@ -4,6 +4,8 @@
 	"description": "Extension for helping players play the browser game Travian",
 	"icons": { "48": "icon48.png", "128": "icon128.png" },
 	
+	"background_page": "background.html",
+	
 	"page_action": {
 		"default_icon": "icon48.png"
 	},

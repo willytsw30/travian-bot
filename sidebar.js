@@ -64,6 +64,13 @@ SideBar.applyAllChanges = function () {
 	}
 	
 }
+SideBar.getCurrentVillageId = function () {
+	var n = XPath.getNode('//*[@id="side_info"]//td[@class="dot hl"]/..//a');
+	if (n == null)
+		return null;
+	return Util.getURLQuery(n.href).newdid;
+}
+
 
 SideBar.applyAllChanges();
 
