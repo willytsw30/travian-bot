@@ -30,7 +30,7 @@ Production.createTimer = function (productionPerHour, capacity, instock) {
 		productionPerHour *= -1;
 		span.className = 'bad';
 	}
-	span.totalSeconds = parseInt((remaining / productionPerHour)*3600);
+	span.totalSeconds = parseInt((remaining*3600 / productionPerHour));
 
 	span.calcRemainingTime = function() {
 		(this.totalSeconds == 0) ? this.className = 'bad' : this.totalSeconds -= 1;
@@ -71,7 +71,5 @@ Production.addTimers = function() {
 
 
 Production.addTimers();
-
-
 
 
