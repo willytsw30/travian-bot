@@ -4,6 +4,13 @@ Building.getId = function () {
 	return XPath.getInt('//*[@id="build"]/@class');
 }
 
+Building.getNextLevel = function () {
+	var n = XPath.getNode('//table[@id="build_value"]//tr[2]');
+	if (n == null)
+		return null;
+	return XPath.getInt('.//th/text()', n);
+}
+
 
 var Marketplace = {};
 
@@ -221,31 +228,56 @@ Marketplace.applyAllChanges = function () {
 		Marketplace.addTradersCapacity();
 	}
 }
+
 var FutureUpgrade = {}
 FutureUpgrade.addLink = function () {
-	
-	var p = XPath.getNode('//*[@id="contract"]');
-	if (p == null)
-		return;
-	
-	p.appendChild(document.createElement('br'));
-	var a = document.createElement('a');
-	a.href = "#";
-	a.appendChild(document.createTextNode('Enqueue'));
-	p.appendChild(a);
-	
-	a.onclick = function () { 
+	var onBuildingQueuePublished = function (enentName, bqrows) {
+		var nextLevel = Building.getNextLevel();
+		if (nextLevel == null)
+			return;
+			
 		var slotId = Util.getURLQuery(window.location).id;
 		var villageId = SideBar.getCurrentVillageId();
-		Comm.invoke(null, 'BuildingQueue.enqueue', villageId, slotId);
+		
+		for (var i=0; i < bqrows.length; ++i) {
+			if (bqrows[i].villageId == villageId &&
+				bqrows[i].slotId == slotId && nextLevel < (bqrows[i].level+1)) {
+				
+				nextLevel = bqrows[i].level+1;
+			}
+		}
 	
-		return false;
+		var p = XPath.getNode('//p[@id="contract"]');
+		if (p == null)
+			return;
+		var br = document.createElement('br');
+		p.appendChild(br);
+	
+		var a = document.createElement('a');
+		a.href = "#";
+		a.appendChild(document.createTextNode('Enqueue level '+nextLevel));
+		p.appendChild(a);
+		
+		a.onclick = function () { 
+			Comm.invoke(null, 'BuildingQueue.enqueue', villageId, slotId, nextLevel);
+			return false;
+		};
+	
+	
+		Comm.subscribe(function() { 
+			p.removeChild(a);
+			p.removeChild(br);
+			FutureUpgrade.addLink();
+		}, 'BuildingQueueChanged');
+	
 	}
+	Comm.subscribe(onBuildingQueuePublished, 'BuildingQueuePublished');
+	Comm.invoke(null, 'BuildingQueue.publish');
+	
 	
 }
 
 
 FutureUpgrade.addLink();
 Marketplace.applyAllChanges();
-
 

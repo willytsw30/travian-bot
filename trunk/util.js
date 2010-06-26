@@ -181,14 +181,15 @@ Comm.invoke = function(callback, funcName) {
 	var params = new Array();
 	for (var i=2; i < arguments.length; ++i)
 		params.push(arguments[i]);
+
 	chrome.extension.sendRequest({'funcName': funcName, 'params': params},
 		function (res) { if (callback) callback(res.returnValue); });
 }
 
-Comm.register = function (name, func) {
+Comm.register = function (funcName, func) {
 	chrome.extension.onRequest.addListener(
 	function(req, sender, sendResponse) {
-		if (name != req.funcName)
+		if (funcName != req.funcName)
 			return;
 		paramsString = '';
 		for (var i=0; i < req.params.length; ++i)
@@ -200,6 +201,29 @@ Comm.register = function (name, func) {
 		sendResponse({'returnValue': returnValue});
 	});
 }
+
+Comm.publish = function(eventName, value) {
+	//alert('publishing '+eventName);
+	chrome.tabs.getAllInWindow(null, function(tabs) {
+		for (var i=0; i < tabs.length; ++i) {
+			chrome.tabs.sendRequest(tabs[i].id, {'eventName': eventName, 'value': value})
+		}
+	});
+}
+
+Comm.subscribe = function (callback, eventName) {
+	//alert('subscribing to '+eventName);
+	var listener = function(req, sender, sendResponse) {
+		if (eventName == req.eventName) {
+			chrome.extension.onRequest.removeListener(listener);
+			callback(eventName, req.value);
+			sendResponse({});
+		}
+	};
+	chrome.extension.onRequest.addListener(listener);
+	
+}
+
 
 Comm.test = function() {
 	alert('util test');

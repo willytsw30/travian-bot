@@ -1,7 +1,7 @@
 
 
 var Production = {};
-
+var BuildingQueue = {}
 
 Production.calcRemainingTime = function() {
 	setTimeout('Production.calcRemainingTime();', 1000);
@@ -68,8 +68,56 @@ Production.addTimers = function() {
 	Production.calcRemainingTime();
 }
 
+BuildingQueue.displayBuildingQueue = function () {
+	var villageId = SideBar.getCurrentVillageId();
+	
+	var onBuildingQueuePublished = function (eventName, rows) {		
+		var table = document.createElement('table');
+		var n = XPath.getNode('//div[@id="content"]');
+		n.appendChild(table);
+		for (var i=0; i < rows.length; ++i) {
+			if (rows[i].villageId != villageId)
+				continue;
 
+			var tr = document.createElement('tr');
+			table.appendChild(tr);
 
+			var td = document.createElement('td');
+			var img = document.createElement('img');
+			img.src = 'img/x.gif';
+			img.className = 'del';
+			var a = document.createElement('a');
+			a.appendChild(img);
+			a.href = '#';
+			a.onclick = (function(villageId, slotId, level) {
+				return function() {
+					Comm.invoke(null, 'BuildingQueue.remove', villageId, slotId, level);
+					return false;
+				};
+			})(rows[i].villageId, rows[i].slotId, rows[i].level);
+			
+			td.appendChild(a);
+			tr.appendChild(td);
+			
+			td = document.createElement('td');
+			a = document.createElement('a');
+			a.appendChild(document.createTextNode('building slot '+rows[i].slotId+' level '+rows[i].level));
+			a.href = 'build.php?id='+rows[i].slotId;
+			td.appendChild(a);
+			tr.appendChild(td);
+		}
+		Comm.subscribe(function() {
+			n.removeChild(table);
+			BuildingQueue.displayBuildingQueue();
+		}, 'BuildingQueueChanged');
+	}
+	
+	Comm.subscribe(onBuildingQueuePublished, 'BuildingQueuePublished');
+	Comm.invoke(null, 'BuildingQueue.publish');
+}
+
+BuildingQueue.displayBuildingQueue();
 Production.addTimers();
+
 
 
