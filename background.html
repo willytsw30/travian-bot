@@ -163,21 +163,36 @@ Background.timeoutId = null;
 
 
 Background.togglePlayPause = function() {
-	if (Background.timeoutId == null)
+
+	var changeIcon = function (iconName) {
+		chrome.tabs.getAllInWindow(null, function(tabs) {
+			for (var i=0; i < tabs.length; ++i) {
+				if (/\.travian\./.test(tabs[i].url)) {
+					var img = new Object();
+					img.path = chrome.extension.getURL(iconName);
+					img.tabId = tabs[i].id;
+					chrome.pageAction.setIcon(img);
+				}
+			}
+		});
+	}
+
+	if (Background.timeoutId == null) {
+		changeIcon('icon48_online.png');
 		Background.play();
-	else
+	} else {
+		changeIcon('icon48_offline.png');
 		Background.pause();
+	}
 }
 
 Background.play = function () {
-	alert('Play');
 	Background.run();
-	Background.timeoutId = setTimeout(Background.run, 10*60*1000);
+	Background.timeoutId = setTimeout(Background.play, 10*60*1000);
 }
 
 Background.pause = function () {
 	if (Background.timeoutId != null) {
-		alert('Puase');
 		clearTimeout(Background.timeoutId);
 		Background.timeoutId = null;
 	}
@@ -244,6 +259,14 @@ function init() {
 	// show icon in address bar
 	chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 		if (/\.travian\./.test(tab.url)) {
+			var img = new Object();
+			if (Background.timeoutId == null) {
+				img.path = chrome.extension.getURL('icon48_offline.png');
+			} else {
+				img.path = chrome.extension.getURL('icon48_online.png');
+			}
+			img.tabId = tab.id;
+			chrome.pageAction.setIcon(img);
 			chrome.pageAction.show(tabId);
 		}
 	});

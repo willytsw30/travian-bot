@@ -2,12 +2,12 @@
 	"name": "travian script",
 	"version": "1.0",
 	"description": "Extension for helping players play the browser game Travian",
-	"icons": { "48": "icon48.png", "128": "icon128.png" },
+	"icons": { "48": "icon48_online.png", "128": "icon128.png" },
 	
 	"background_page": "background.html",
 	
 	"page_action": {
-		"default_icon": "icon48.png"
+		"default_icon": "icon48_offline.png"
 	},
 
 	"permissions" : [ 

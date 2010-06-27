@@ -2,6 +2,8 @@
 
 var Production = {};
 var BuildingQueue = {}
+var Fields = {}
+
 
 Production.calcRemainingTime = function() {
 	setTimeout('Production.calcRemainingTime();', 1000);
@@ -101,8 +103,9 @@ BuildingQueue.displayBuildingQueue = function () {
 			
 			td = document.createElement('td');
 			a = document.createElement('a');
-			a.appendChild(document.createTextNode('building slot '+rows[i].slotId+' level '+rows[i].level));
-			a.href = 'build.php?id='+rows[i].slotId;
+			var buildingName = Fields.getName(rows[i].villageId, rows[i].slotId);
+			a.appendChild(document.createTextNode(buildingName+' in slot '+rows[i].slotId+' level '+rows[i].level));
+			a.href = 'build.php?newdid='+rows[i].villageId+'&id='+rows[i].slotId;
 			td.appendChild(a);
 			tr.appendChild(td);
 		}
@@ -118,6 +121,28 @@ BuildingQueue.displayBuildingQueue = function () {
 
 BuildingQueue.displayBuildingQueue();
 Production.addTimers();
+
+Fields.storeVillageClass = function () {
+	var villageId = parseInt(SideBar.getCurrentVillageId());
+	var villageClass = XPath.getString('//*[@id="village_map"]/@class');
+	localStorage.setItem('VillageClass['+villageId+']', villageClass);
+}
+
+Fields.getName = function(villageId, slotId) {
+	slotId = parseInt(slotId);
+	if (slotId < 1 || 18 < slotId)
+		return null;
+	var villageClass = localStorage.getItem('VillageClass['+villageId+']');
+	if (villageClass == null)
+		return null;
+
+	var fieldId = FieldIdFromVillageClass[villageClass][slotId];
+	
+	return FieldNameFromId[fieldId]
+}
+
+Fields.storeVillageClass();
+
 
 
 
