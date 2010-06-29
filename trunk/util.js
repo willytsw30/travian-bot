@@ -4,7 +4,7 @@ var XPath = {};
 XPath.getString = function (query, root) {
 	root = root || document;
 	return document.evaluate(query ,root, null, XPathResult.STRING_TYPE, null).stringValue;
-}
+};
 
 XPath.getInt = function (query, root) {
 	root = root || document;
@@ -12,7 +12,7 @@ XPath.getInt = function (query, root) {
 	if (str == '')
 		return 0;
 	return parseInt(str.match(/[\-]?[0-9]+/).toString());
-}
+};
 
 XPath.getNodes = function (query, root) {
 	root = root || document;
@@ -24,19 +24,19 @@ XPath.getNodes = function (query, root) {
 		node = itr.iterateNext();
 	}
 	return res;
-}
+};
 
 XPath.getNode = function (query, root) {
 	root = root || document;
 	return document.evaluate(query ,root, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-}
+};
 
 
 var Map = {};
 
 Map.xy2id = function (x, y) {
 	return (((400-parseInt(y))*801)+(parseInt(x)+401));
-}
+};
 
 /*
 Map.id2xy = function (id) {
@@ -50,42 +50,42 @@ DOM.removeAllChildren = function (node) {
 	while (node.firstChild != null) {
 		node.removeChild(node.firstChild);
 	}
-}
+};
 
 var Resources = {};
 Resources.getWood = function () {
 	return parseInt(XPath.getString('//*[@id="l4"]/text()').split("/")[0]);
-}
+};
 Resources.getWoodProduction = function () {
 	return XPath.getInt('//*[@id="l4"]/@title');
-}
+};
 Resources.getWherehouseCapacity = function () {
 	return parseInt(XPath.getString('//*[@id="l4"]/text()').split("/")[1]);
-}
+};
 
 Resources.getClay = function () {
 	return parseInt(XPath.getString('//*[@id="l3"]/text()').split("/")[0]);
-}
+};
 Resources.getClayProduction = function () {
 	return XPath.getInt('//*[@id="l3"]/@title');
-}
+};
 
 Resources.getIron = function () {
 	return parseInt(XPath.getString('//*[@id="l2"]/text()').split("/")[0]);
-}
+};
 Resources.getIronProduction = function () {
 	return XPath.getInt('//*[@id="l2"]/@title');
-}
+};
 
 Resources.getCrop = function () {
 	return parseInt(XPath.getString('//*[@id="l1"]/text()').split("/")[0]);
-}
+};
 Resources.getCropProduction = function () {
 	return XPath.getInt('//*[@id="l1"]/@title');
-}
+};
 Resources.getGranaryCapacity = function () {
 	return parseInt(XPath.getString('//*[@id="l1"]/text()').split("/")[1]);
-}
+};
 
 Resources.createWoodIcon = function () {
 	var img = document.createElement('img');
@@ -93,7 +93,7 @@ Resources.createWoodIcon = function () {
 	img.className = 'r1';
 	img.alt = 'Send Resources';
 	return img;
-}
+};
 
 Resources.createClayIcon = function () {
 	var img = document.createElement('img');
@@ -101,7 +101,7 @@ Resources.createClayIcon = function () {
 	img.className = 'r2';
 	img.alt = 'Send Resources';
 	return img;
-}
+};
 
 Resources.createIronIcon = function () {
 	var img = document.createElement('img');
@@ -109,7 +109,7 @@ Resources.createIronIcon = function () {
 	img.className = 'r3';
 	img.alt = 'Send Resources';
 	return img;
-}
+};
 
 Resources.createCropIcon = function () {
 	var img = document.createElement('img');
@@ -117,7 +117,7 @@ Resources.createCropIcon = function () {
 	img.className = 'r4';
 	img.alt = 'Send Resources';
 	return img;
-}
+};
 
 Resources.calcProduction = function(seconds) {
 	var wood = Resources.getWoodProduction();
@@ -131,8 +131,8 @@ Resources.calcProduction = function(seconds) {
 		'clay': clay*hours,
 		'iron': iron*hours,
 		'crop': crop*hours
-	}
-}
+	};
+};
 
 var Units = {};
 Units.createIcon = function () {
@@ -141,7 +141,7 @@ Units.createIcon = function () {
 	img.className = 'unit u1';
 	img.alt = 'Send Units';
 	return img;
-}
+};
 
 var Util = {};
 Util.seconds2TimeString = function (secs) {
@@ -153,13 +153,13 @@ Util.seconds2TimeString = function (secs) {
 	if (m < 10)
 		m = "0"+m;
 	return h+":"+m+":"+s;
-}
+};
 Util.timeString2Seconds = function (ts) {
 	var h = parseInt(ts.split(':')[0]);
 	var m = parseInt(ts.split(':')[1]);
 	var s = parseInt(ts.split(':')[2]);
 	return h*3600 + m*60 + s;
-}
+};
 
 Util.getURLQuery = function (url) {
 	var q = url.toString().split('?');
@@ -173,7 +173,7 @@ Util.getURLQuery = function (url) {
 		res[key] = val;
 	}
 	return res;
-}
+};
 
 var Comm = {};
 
@@ -184,7 +184,7 @@ Comm.invoke = function(callback, funcName) {
 
 	chrome.extension.sendRequest({'funcName': funcName, 'params': params},
 		function (res) { if (callback) callback(res.returnValue); });
-}
+};
 
 Comm.register = function (funcName, func) {
 	chrome.extension.onRequest.addListener(
@@ -200,16 +200,16 @@ Comm.register = function (funcName, func) {
 		returnValue = eval(callStr);
 		sendResponse({'returnValue': returnValue});
 	});
-}
+};
 
 Comm.publish = function(eventName, value) {
 	//alert('publishing '+eventName);
 	chrome.tabs.getAllInWindow(null, function(tabs) {
 		for (var i=0; i < tabs.length; ++i) {
-			chrome.tabs.sendRequest(tabs[i].id, {'eventName': eventName, 'value': value})
+			chrome.tabs.sendRequest(tabs[i].id, {'eventName': eventName, 'value': value});
 		}
 	});
-}
+};
 
 Comm.subscribe = function (callback, eventName) {
 	//alert('subscribing to '+eventName);
@@ -222,12 +222,12 @@ Comm.subscribe = function (callback, eventName) {
 	};
 	chrome.extension.onRequest.addListener(listener);
 	
-}
+};
 
 
 Comm.test = function() {
 	alert('util test');
-}
+};
 
 
 

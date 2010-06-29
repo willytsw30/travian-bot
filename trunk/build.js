@@ -2,14 +2,11 @@ var Building = {};
 
 Building.getId = function () {
 	return XPath.getInt('//*[@id="build"]/@class');
-}
+};
 
 Building.getNextLevel = function () {
-	var n = XPath.getNode('//table[@id="build_value"]//tr[2]');
-	if (n == null)
-		return null;
-	return XPath.getInt('.//th/text()', n);
-}
+	return XPath.getInt('//p[@id="contract"]/text()');
+};
 
 
 var Marketplace = {};
@@ -17,12 +14,12 @@ var Marketplace = {};
 Marketplace.isPageFit = function () {
 	var gid = Building.getId();
 	return BuildingFromId[gid] == 'Marketplace';
-}
+};
 
 Marketplace.getTraderRemainingTime = function (traderTable) {
 	var time = XPath.getString('.//*[starts-with(@id, "timer")]', traderTable);
 	return Util.timeString2Seconds(time);
-}
+};
 
 Marketplace.getTraderResources = function (traderTable) {
 	var wood = XPath.getInt('.//img[@class="r1"]/following-sibling::text()', traderTable);
@@ -34,8 +31,8 @@ Marketplace.getTraderResources = function (traderTable) {
 		'clay': clay,
 		'iron': iron,
 		'crop': crop
-	}
-}
+	};
+};
 
 Marketplace.addTraderResourceRow = function (traderTable, resources) {
 	var tr = document.createElement('tr');
@@ -54,7 +51,7 @@ Marketplace.addTraderResourceRow = function (traderTable, resources) {
 		if (resource < 0 || capacity < resource)
 			span.className = 'bad';
 		td.appendChild(span);
-	}
+	};
 	
 	var wherehouse = Resources.getWherehouseCapacity();
 	
@@ -69,7 +66,7 @@ Marketplace.addTraderResourceRow = function (traderTable, resources) {
 	
 	appendResource(td, Resources.createCropIcon(), resources.crop, Resources.getGranaryCapacity());
 	
-}
+};
 
 Marketplace.isTraderIncoming = function (traderTable) {
 	var span = XPath.getNode('.//tr[@class="res"]//span', traderTable);
@@ -77,7 +74,7 @@ Marketplace.isTraderIncoming = function (traderTable) {
 		return false;
 	}
 	return true;
-}
+};
 
 Marketplace.addTradersResourcePrediction = function () {
 	var traders = XPath.getNodes('//table[@class="traders"]');
@@ -104,20 +101,20 @@ Marketplace.addTradersResourcePrediction = function () {
 			'clay': prodResources.clay + traderResources.clay + totalResources.clay,
 			'iron': prodResources.iron + traderResources.iron + totalResources.iron,
 			'crop': prodResources.crop + traderResources.crop + totalResources.crop
-		}
+		};
 		
 		Marketplace.addTraderResourceRow(trader, totalResources);
 	
 	}
-}
+};
 Marketplace.getAvailabileTraders = function () {
 	var mer = XPath.getString('//*[@id="target_select"]//*[@class="mer"]/text()');
 	mer = mer.match(/[0-9]+\/[0-9]+/g).toString();
 	return parseInt(mer.split('/')[0]);
-}
+};
 Marketplace.getTraderCapacity = function () {
 	return XPath.getInt('//*[@id="send_select"]//*[@class="max"][1]//a/text()');
-}
+};
 
 Marketplace.getTotalCarring = function() {
 	wood = XPath.getNode('//*[@id="r1"]').value;
@@ -133,7 +130,7 @@ Marketplace.getTotalCarring = function() {
 	crop = (crop == '') ? 0 : parseInt(crop);
 	
 	return  wood + clay + iron + crop;
-}
+};
 
 Marketplace.createTotalResourcesNode = function () {
 	var span = document.createElement('span');
@@ -143,29 +140,29 @@ Marketplace.createTotalResourcesNode = function () {
 		DOM.removeAllChildren(this);
 		this.appendChild(document.createTextNode(totalCarry+"/"+totalCapacity));
 		(totalCarry > totalCapacity) ? this.className = 'bad' : this.className = 'good';
-	}
+	};
 	span.calcSpaceLeft();
 	
 	// adding change listeners
 	var nodes = XPath.getNodes('//*[starts-with(@onmouseup, "add_res")]');
 	for (var i in nodes) {
 		nodes[i].onmouseup = (function(span, oldFunc) {
-			return function() { oldFunc(); span.calcSpaceLeft(); }
+			return function() { oldFunc(); span.calcSpaceLeft(); };
 		})(span, nodes[i].onmouseup);
 	}
 	nodes = XPath.getNodes('//*[starts-with(@onkeyup, "upd_res")]');
 	for (var i in nodes) {
 		nodes[i].onkeyup = (function(span, oldFunc) {
-			return function() { oldFunc(); span.calcSpaceLeft(); }
+			return function() { oldFunc(); span.calcSpaceLeft(); };
 		})(span, nodes[i].onkeyup);
 	}
 	
 	return span;
-}
+};
 Marketplace.createAddAllResourcesLink = function () {
 	var a = document.createElement('a');
 	a.href = "#";
-	a.onclick = function () { return false; }
+	a.onclick = function () { return false; };
 	a.onmouseup = function() {
 		var rows = XPath.getNodes('//table[@id="send_select"]//tr[./td[1]/@class = "ico"]');
 		for (var i in rows) {
@@ -173,10 +170,10 @@ Marketplace.createAddAllResourcesLink = function () {
 			if (cb == null || cb.checked)
 				XPath.getNode('.//*[starts-with(@onmouseup, "add_res")]', rows[i]).onmouseup();
 		}
-	}
+	};
 	a.appendChild(document.createTextNode('('+Marketplace.getTraderCapacity()+')'));
 	return a;
-}
+};
 Marketplace.addResourcesCheckboxes = function () {
 	var cbs = new Array();
 	var rows = XPath.getNodes('//table[@id="send_select"]//tr[./td[1]/@class = "ico"]');
@@ -194,9 +191,9 @@ Marketplace.addResourcesCheckboxes = function () {
 		return function() {
 			for (var i in cbs)
 				cbs[i].checked = this.checked;
-		}})(cbs);
+		};})(cbs);
 	return cb;
-}
+};
 
 
 Marketplace.addTradersCapacity = function () {
@@ -220,21 +217,23 @@ Marketplace.addTradersCapacity = function () {
 	tr.appendChild(td);
 	
 	
-}
+};
 
 Marketplace.applyAllChanges = function () {
 	if (Marketplace.isPageFit()) {
 		Marketplace.addTradersResourcePrediction();
 		Marketplace.addTradersCapacity();
 	}
-}
+};
 
-var FutureUpgrade = {}
+var FutureUpgrade = {};
 FutureUpgrade.addLink = function () {
 	var onBuildingQueuePublished = function (enentName, bqrows) {
-		var nextLevel = Building.getNextLevel();
-		if (nextLevel == null)
+		var p = XPath.getNode('//p[@id="contract"]');
+		if (p == null)
 			return;
+		
+		var nextLevel = Building.getNextLevel();
 			
 		var slotId = Util.getURLQuery(window.location).id;
 		var villageId = SideBar.getCurrentVillageId();
@@ -246,10 +245,7 @@ FutureUpgrade.addLink = function () {
 				nextLevel = bqrows[i].level+1;
 			}
 		}
-	
-		var p = XPath.getNode('//p[@id="contract"]');
-		if (p == null)
-			return;
+		
 		var br = document.createElement('br');
 		p.appendChild(br);
 	
@@ -259,7 +255,7 @@ FutureUpgrade.addLink = function () {
 		p.appendChild(a);
 		
 		a.onclick = function () { 
-			Comm.invoke(null, 'BuildingQueue.enqueue', villageId, slotId, nextLevel);
+			Comm.invoke(null, 'DB.BuildingQueue.enqueue', villageId, slotId, nextLevel);
 			return false;
 		};
 	
@@ -270,12 +266,12 @@ FutureUpgrade.addLink = function () {
 			FutureUpgrade.addLink();
 		}, 'BuildingQueueChanged');
 	
-	}
+	};
 	Comm.subscribe(onBuildingQueuePublished, 'BuildingQueuePublished');
-	Comm.invoke(null, 'BuildingQueue.publish');
+	Comm.invoke(null, 'DB.BuildingQueue.publish');
 	
 	
-}
+};
 
 FutureUpgrade.addLink();
 Marketplace.applyAllChanges();

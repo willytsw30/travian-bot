@@ -1,8 +1,8 @@
 
 
 var Production = {};
-var BuildingQueue = {}
-var Fields = {}
+var BuildingQueue = {};
+var Fields = {};
 
 
 Production.calcRemainingTime = function() {
@@ -10,7 +10,7 @@ Production.calcRemainingTime = function() {
 	for (var i in Production.timers) {
 		Production.timers[i].calcRemainingTime();
 	}
-}
+};
 
 Production.timers = new Array();
 
@@ -39,11 +39,11 @@ Production.createTimer = function (productionPerHour, capacity, instock) {
 		var t = Util.seconds2TimeString(this.totalSeconds);
 		DOM.removeAllChildren(this);
 		this.appendChild(document.createTextNode(t));
-	}
+	};
 	
 	
 	return span;
-}
+};
 
 Production.addTimers = function() {
 
@@ -68,12 +68,12 @@ Production.addTimers = function() {
 	cropNode.appendChild(cropSpan);
 	
 	Production.calcRemainingTime();
-}
+};
 
 BuildingQueue.displayBuildingQueue = function () {
 	var villageId = SideBar.getCurrentVillageId();
 	
-	var onBuildingQueuePublished = function (eventName, rows) {		
+	var onBuildingQueuePublished = function (eventName, rows) {
 		var table = document.createElement('table');
 		var n = XPath.getNode('//div[@id="content"]');
 		n.appendChild(table);
@@ -93,7 +93,7 @@ BuildingQueue.displayBuildingQueue = function () {
 			a.href = '#';
 			a.onclick = (function(villageId, slotId, level) {
 				return function() {
-					Comm.invoke(null, 'BuildingQueue.remove', villageId, slotId, level);
+					Comm.invoke(null, 'DB.BuildingQueue.remove', villageId, slotId, level);
 					return false;
 				};
 			})(rows[i].villageId, rows[i].slotId, rows[i].level);
@@ -113,11 +113,11 @@ BuildingQueue.displayBuildingQueue = function () {
 			n.removeChild(table);
 			BuildingQueue.displayBuildingQueue();
 		}, 'BuildingQueueChanged');
-	}
+	};
 	
 	Comm.subscribe(onBuildingQueuePublished, 'BuildingQueuePublished');
-	Comm.invoke(null, 'BuildingQueue.publish');
-}
+	Comm.invoke(null, 'DB.BuildingQueue.publish');
+};
 
 BuildingQueue.displayBuildingQueue();
 Production.addTimers();
@@ -126,7 +126,7 @@ Fields.storeVillageClass = function () {
 	var villageId = parseInt(SideBar.getCurrentVillageId());
 	var villageClass = XPath.getString('//*[@id="village_map"]/@class');
 	localStorage.setItem('VillageClass['+villageId+']', villageClass);
-}
+};
 
 Fields.getName = function(villageId, slotId) {
 	slotId = parseInt(slotId);
@@ -138,8 +138,8 @@ Fields.getName = function(villageId, slotId) {
 
 	var fieldId = FieldIdFromVillageClass[villageClass][slotId];
 	
-	return FieldNameFromId[fieldId]
-}
+	return FieldNameFromId[fieldId];
+};
 
 Fields.storeVillageClass();
 
