@@ -1,34 +1,23 @@
 
-<script src="util.js"/>
+<script src="util.js"></script>
+<script src="Database.js"></script>
 <script>
 
-var BuildingQueue = {}
-var Village = {}
+var Village = {};
 var Background = {};
 var XHR = {}
 
-XHR.waitingQueue = new Array();
-
-XHR.unlock = function() {
-	if (XHR.waitingQueue.length > 0)
-		XHR.waitingQueue.shift()();
-}
-
-XHR.lock = function (callback) {
-	if (XHR.waitingQueue.length > 0) {
-		XHR.waitingQueue.push(callback);
-		return;
-	} //else 
-	callback();
-}
 
 XHR.lastDownload = 0;
+XHR.timeoutId = null;
+XHR.parser = new DOMParser();
 
 XHR.getPage = function (suffix, params, callback) {
 	var xhr = new XMLHttpRequest();
 	xhr.onreadystatechange = function() {
 		 if (xhr.readyState == 4) {
-		 	callback(xhr.status, xhr.responseText);
+			xml = XHR.parser.parseFromString(xhr.responseText, "text/xml");
+		 	callback(xhr.status, xml);
 		 }
 	}
 	xhr.open("GET", "http://s3.travian.co.il/"+suffix, true);
@@ -39,7 +28,7 @@ XHR.getPage = function (suffix, params, callback) {
 			xhr.send();
 			XHR.lastDownload = now;
 		} else {
-			setTimeout(sendRequest, 1000);
+			XHR.timeoutId = setTimeout(sendRequest, 1000);
 		}
 	}
 	
@@ -48,6 +37,56 @@ XHR.getPage = function (suffix, params, callback) {
 }
 
 
+function VillageManager(villageId) {
+	this.villageId = villageId;
+	
+}
+
+VillageManager.prototype.navigateToVillage = function(onFinished) {
+	XHR.getPage('dorf1.php?newdid='+this.villageId, null, onFinished);
+}
+
+VillageManager.prototype.runBQ = function(onFinished) {	
+	DB.BuildingQueue.top(this.villageId, function(row) {
+		var villageId = row.villageId;
+		var slotId = row.slotId;
+		var level = row.level;
+		
+		XHR.getPage('build.php?id='+slotId, null, function(status, page) {
+		
+		var n = XPath.getNode('//*[@id="contract"]//a[@class="build"]', page);
+		if (n == null) {
+			onFinished();
+			return;
+		}
+		var link = XPath.getString('./@href', n);
+		
+		XHR.getPage(link, null, function (status, page) {
+			
+		DB.BuildingQueue.remove(villageId, slotId, level);
+		onFinished();
+		
+		});
+		});
+	});
+}
+
+VillageManager.prototype.runStrategies = function (onFinished) {
+	//alert('procesing village '+this.villageId);
+	var runBQ = (function(that, onFinished) {
+		return function() {
+			that.runBQ(onFinished);
+		};
+	})(this, onFinished);
+	
+	this.navigateToVillage(function () {
+	runBQ();
+	});
+	
+}
+
+
+/*
 function toDOM(HTMLstring)
 {
 	var d = document.createElement('div');
@@ -61,107 +100,25 @@ function toDOM(HTMLstring)
 	return docFrag;
 }
 
-
-BuildingQueue.resultToArray = function (sqlResultSet) {
-	var res = new Array();
-	for (var i=0; i < sqlResultSet.rows.length; ++i) {
-		var row = sqlResultSet.rows.item(i);
-		res.push({
-			'villageId'	: parseInt(row['villageId']),
-			'slotId'	: parseInt(row['slotId']),
-			'priority'	: parseInt(row['priority']),
-			'level'		: parseInt(row['level'])
-		});
-	}
-	return res;
-}
+*/
 
 
-
-
-BuildingQueue.publish = function() {
-	Background.Database.transaction(function(tx) {
-		var query = "SELECT * FROM buildingQueues";
-		var res = function (tx, result) {
-			Comm.publish('BuildingQueuePublished', BuildingQueue.resultToArray(result));
-		}
-		tx.executeSql(query, [], res, Background.DatabaseErrorFunc);
-	});
-}
-
-BuildingQueue.remove = function (villageId, slotId, level) {
-	//alert('removing: '+villageId+", "+slotId+", level "+level);
-	Background.Database.transaction(function(tx) {
-	
-		var res = function (tx, result) { 
-			if (result.rowsAffected > 0) {
-				Comm.publish('BuildingQueueChanged');
-			}
-		}; 
-	
-		tx.executeSql(
-			"DELETE FROM buildingQueues "+
-			"WHERE villageId=? AND slotId=? AND level=?",
-			[villageId, slotId, level], res, Background.DatabaseErrorFunc);
-	});
-}
-
-BuildingQueue.enqueue = function (villageId, slotId, level) {
-	
-	Background.Database.transaction(function(tx) {
-		var res = function (tx, result) {
-			if (result.rowsAffected > 0) {
-				Comm.publish('BuildingQueueChanged');
+Background.run = function() {
+	DB.getAllVillages(function (villagesIds) {
+		var i=0;
+		var f = function() {
+			if (i < villagesIds.length) {
+				var v = new VillageManager(villagesIds[i++].villageId);
+				v.runStrategies(f);
 			}
 		}
-		
-		console.log('Enqueue building operation');
-		var query = "INSERT INTO buildingQueues VALUES ("+
-			"?, ?, (SELECT COALESCE (MAX(priority), 0)+1 FROM buildingQueues where villageId = ?), ?)";
-		tx.executeSql(query, [villageId, slotId, villageId, level], res, Background.DatabaseErrorFunc);
+		f();
 	});
+	
+	
 }
 
-
-
-Village.construct = function (onSuccess, villageId, slotId, level) {
-//	alert('constructing: '+villageId+", "+slotId+", level "+level);
-	XHR.lock(function() {
-		XHR.getPage("build.php?newdid="+villageId+"&id="+slotId, null, function(status, txt) {
-
-		if (status != 200)
-			return;
-		parser = new DOMParser();
-		filterXmlDoc = parser.parseFromString(txt, "text/xml");
-		var n = XPath.getNode('//*[@id="contract"]//a[@class="build"]', filterXmlDoc);
-		if (n == null)
-			return;
-		var link = XPath.getString('./@href', n);
-		XHR.getPage(link, null, function(status, txt) {
-		if (status == 200) {
-			onSuccess();
-		}
-		});
-		
-		});
-	});
-}
-
-
-Background.Database = null;
-Background.DatabaseErrorFunc = function (tx, error) {
-	console.log('ERROR');
-	console.log(error);
-}
-
-Background.DatabaseResult = function (tx, result) {
-	console.log('RESULT');
-	console.log(result);
-}
-
-Background.timeoutId = null;
-
-
+Background.isOnline = false;
 Background.togglePlayPause = function() {
 
 	var changeIcon = function (iconName) {
@@ -177,93 +134,49 @@ Background.togglePlayPause = function() {
 		});
 	}
 
-	if (Background.timeoutId == null) {
-		changeIcon('icon48_online.png');
-		Background.play();
-	} else {
+	if (Background.isOnline) {
 		changeIcon('icon48_offline.png');
 		Background.pause();
+	} else {
+		changeIcon('icon48_online.png');
+		Background.play();
 	}
 }
 
 Background.play = function () {
+	Background.isOnline = true;
 	Background.run();
 	Background.timeoutId = setTimeout(Background.play, 10*60*1000);
 }
 
 Background.pause = function () {
+	Background.isOnline = false;
 	if (Background.timeoutId != null) {
 		clearTimeout(Background.timeoutId);
 		Background.timeoutId = null;
 	}
+	if (XHR.timeoutId != null) {
+		clearTimeout(XHR.timeoutId);
+	}
 }
 
 
-Background.run = function () {
-	// get all building queues top
-	Background.Database.transaction(function(tx) {
-		var query = 
-			"SELECT villageId, slotId, level "+
-			"FROM buildingQueues A "+
-			"WHERE priority = ("+
-				"SELECT MIN(priority) "+
-				"FROM buildingQueues "+
-				"WHERE villageId = A.villageId"+
-			")";
-		var res = function (tx, result) {
-			
-			for (var i=0; i < result.rows.length; ++i) {
-				var row = result.rows.item(i);
-				var villageId = row['villageId'];
-				var slotId = row['slotId'];
-				var level = row['level'];
-				var onSuccess = (function (villageId, slotId, level) {
-					return function() {
-						BuildingQueue.remove(villageId, slotId, level)
-					};
-				})(villageId, slotId, level);
-				Village.construct(onSuccess, villageId, slotId, level);
-			}
-		};
-		console.log(query);
-		tx.executeSql(query, [], res, Background.DatabaseErrorFunc);
-	});
-}
 
 function tst () {
 	alert('test !');
 }
 
 function init() {
-	// init database
-	try {
-		Background.Database = openDatabase("TravianScript", "1.0", "TravianScript Database", 1024*64);
-		if (!Background.Database)
-			throw 'Error init database connectino';
-	} catch(err) { 
-		console.log(err);
-	}
+	DB.init();
 	
-	Background.Database.transaction(function(tx) {
-		var query = "CREATE TABLE IF NOT EXISTS buildingQueues ("+
-			"villageId INTEGER, "+
-			"slotId INTEGER NOT NULL, "+
-			"priority INTEGER NOT NULL, "+
-			"level INTEGER NOT NULL, "+
-			"PRIMARY KEY(villageId, slotId, level))";
-		console.log(query);
-		tx.executeSql(query, [], Background.DatabaseResult, Background.DatabaseErrorFunc);
-	});
-
-
 	// show icon in address bar
 	chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 		if (/\.travian\./.test(tab.url)) {
 			var img = new Object();
-			if (Background.timeoutId == null) {
-				img.path = chrome.extension.getURL('icon48_offline.png');
-			} else {
+			if (Background.isOnline) {
 				img.path = chrome.extension.getURL('icon48_online.png');
+			} else {
+				img.path = chrome.extension.getURL('icon48_offline.png');
 			}
 			img.tabId = tab.id;
 			chrome.pageAction.setIcon(img);
@@ -276,9 +189,9 @@ function init() {
 	});
 	//Background.play();
 
-	Comm.register('BuildingQueue.enqueue', BuildingQueue.enqueue);
-	Comm.register('BuildingQueue.publish', BuildingQueue.publish);
-	Comm.register('BuildingQueue.remove', BuildingQueue.remove);
+	Comm.register('DB.BuildingQueue.enqueue', DB.BuildingQueue.enqueue);
+	Comm.register('DB.BuildingQueue.publish', DB.BuildingQueue.publish);
+	Comm.register('DB.BuildingQueue.remove',  DB.BuildingQueue.remove);
 	Comm.register('tst', tst);
 }
 

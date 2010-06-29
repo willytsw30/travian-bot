@@ -7,7 +7,7 @@ Village.addSendResources = function (aNode) {
 	a.appendChild(Units.createIcon());
 	a.href = 'a2b.php?z='+id;
 	aNode.parentNode.insertBefore(a, aNode.nextSibling);
-}
+};
 
 Village.addSendUnits = function (aNode) {
 	var id = aNode.href.split('d=')[1].split('&')[0];
@@ -15,7 +15,7 @@ Village.addSendUnits = function (aNode) {
 	a.appendChild(Resources.createWoodIcon());
 	a.href = 'build.php?z='+id+'&gid=17';
 	aNode.parentNode.insertBefore(a, aNode.nextSibling);
-}
+};
 
 Village.applyAllChanges = function () {
 	var villages = XPath.getNodes('//a[starts-with(@href, "karte.php?d=")]');
@@ -25,7 +25,7 @@ Village.applyAllChanges = function () {
 		Village.addSendUnits(v);
 
 	}
-}
+};
 
 
 var Player = {};
