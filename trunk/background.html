@@ -16,7 +16,8 @@ XHR.getPage = function (suffix, params, callback) {
 	var xhr = new XMLHttpRequest();
 	xhr.onreadystatechange = function() {
 		 if (xhr.readyState == 4) {
-			xml = XHR.parser.parseFromString(xhr.responseText, "text/xml");
+			//xml = XHR.parser.parseFromString(xhr.responseText, "text/xml");
+			xml = toDOM(xhr.responseText);
 		 	callback(xhr.status, xml);
 		 }
 	}
@@ -51,16 +52,18 @@ VillageManager.prototype.runBQ = function(onFinished) {
 		var villageId = row.villageId;
 		var slotId = row.slotId;
 		var level = row.level;
-		
+		console.log("Upgrading slot "+slotId+" in village "+villageId);
 		XHR.getPage('build.php?id='+slotId, null, function(status, page) {
+		console.log(page);
+		var n = XPath.getNode('.//p[@id="contract"]//a[@class="build"]', page);
 		
-		var n = XPath.getNode('//*[@id="contract"]//a[@class="build"]', page);
+		console.log(n);
 		if (n == null) {
 			onFinished();
 			return;
 		}
 		var link = XPath.getString('./@href', n);
-		
+		console.log("upgrade link: "+link);
 		XHR.getPage(link, null, function (status, page) {
 			
 		DB.BuildingQueue.remove(villageId, slotId, level);
@@ -86,21 +89,24 @@ VillageManager.prototype.runStrategies = function (onFinished) {
 }
 
 
-/*
+
 function toDOM(HTMLstring)
 {
 	var d = document.createElement('div');
 	d.innerHTML = HTMLstring;
+	/*
 	var docFrag = document.createDocumentFragment();
 
 	while (d.firstChild) {
 	docFrag.appendChild(d.firstChild)
 	};
-
+	
 	return docFrag;
+	*/
+	return d;
 }
 
-*/
+
 
 
 Background.run = function() {
