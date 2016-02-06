@@ -1,0 +1,1 @@
+TS is an extension for google chorme. It provide simple modifications to Travian web page that can help play the game.
